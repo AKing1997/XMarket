@@ -57,80 +57,95 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         return true;
     }
 
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public override returns (bool) {
-        _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()] - amount);
+    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
+        address spender = _msgSender();
+        _spendAllowance(from, spender, value);
+        _transfer(from, to, value);
         return true;
     }
 
     // --- Internal functions ---
-    function _transfer(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) internal {
-        if (sender == address(0)) {
-            revert TRC20InvalidSender(sender);
+    function _transfer(address from, address to, uint256 value) internal {
+        if (from == address(0)) {
+            revert TRC20InvalidSender(address(0));
         }
-        if (recipient == address(0)) {
-            revert TRC20InvalidReceiver(recipient);
+        if (to == address(0)) {
+            revert TRC20InvalidReceiver(address(0));
         }
+        _update(from, to, value);
+    }
 
-        uint256 senderBalance = _balances[sender];
-        if (senderBalance < amount) {
-            revert TRC20InsufficientBalance(sender, senderBalance, amount);
-        }
-        _balances[sender] = senderBalance - amount;
-        _balances[recipient] += amount;
-        emit Transfer(sender, recipient, amount);
+    function _approve(address owner, address spender, uint256 value) internal {
+        _approve(owner, spender, value, true);
     }
 
     function _approve(
-        address owner_,
-        address spender,
-        uint256 amount
-    ) internal {
-        if (owner_ == address(0)) {
-            revert TRC20InvalidApprover(owner_);
+        address owner, 
+        address spender, 
+        uint256 value, 
+        bool emitEvent
+        ) internal virtual {
+        if (owner == address(0)) {
+            revert TRC20InvalidApprover(address(0));
         }
         if (spender == address(0)) {
-            revert TRC20InvalidSpender(spender);
+            revert TRC20InvalidSpender(address(0));
+        }
+        _allowances[owner][spender] = value;
+        if (emitEvent) {
+            emit Approval(owner, spender, value);
+        }
+    }
+
+    function _spendAllowance(address owner, address spender, uint256 value) internal virtual {
+        uint256 currentAllowance = allowance(owner, spender);
+        if (currentAllowance != type(uint256).max) {
+            if (currentAllowance < value) {
+                revert TRC20InsufficientAllowance(spender, currentAllowance, value);
+            }
+            unchecked {
+                _approve(owner, spender, currentAllowance - value, false);
+            }
+        }
+    }
+
+    function _update(address from, address to, uint256 value) internal virtual {
+        if (from == address(0)) {
+            _totalSupply += value;
+        } else {
+            uint256 fromBalance = _balances[from];
+            if (fromBalance < value) {
+                revert TRC20InsufficientBalance(from, fromBalance, value);
+            }
+            unchecked {
+                _balances[from] = fromBalance - value;
+            }
         }
 
-        _allowances[owner_][spender] = amount;
-        emit Approval(owner_, spender, amount);
+        if (to == address(0)) {
+            unchecked {
+                _totalSupply -= value;
+            }
+        } else {
+            unchecked {
+                _balances[to] += value;
+            }
+        }
+
+        emit Transfer(from, to, value);
     }
 
-    function mint(address account, uint256 amount) public isOwner {
-        require(account != address(0), "TRC20: mint to the zero address");
-
-        _totalSupply += amount;
-        _balances[account] += amount;
-        emit Transfer(address(0), account, amount);
+    function _mint(address account, uint256 value) isOwner() internal {
+        if (account == address(0)) {
+            revert TRC20InvalidReceiver(address(0));
+        }
+        _update(address(0), account, value);
     }
 
-    function burn(uint256 amount) public isOwner {
-        require(amount > 0, "TRC20: burn amount must be greater than zero");
-        require(_balances[msg.sender] >= amount, "TRC20: burn amount exceeds balance");
-
-        _balances[msg.sender] -= amount;
-        _totalSupply -= amount;
-        emit Transfer(msg.sender, address(0), amount);
-    }
-
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
-        return true;
-    }
-
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-        uint256 currentAllowance = _allowances[_msgSender()][spender];
-        require(currentAllowance >= subtractedValue, "TRC20: decreased allowance below zero");
-        _approve(_msgSender(), spender, currentAllowance - subtractedValue);
-        return true;
+    function _burn(address account, uint256 value) isOwner() internal {
+        if (account == address(0)) {
+            revert TRC20InvalidSender(address(0));
+        }
+        _update(account, address(0), value);
     }
 }

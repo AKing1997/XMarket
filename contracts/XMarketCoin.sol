@@ -7,6 +7,6 @@ contract XMarketCoin is TRC20 {
     uint256 private constant INITIAL_SUPPLY = 1000000 * (10 ** 18);
 
     constructor() TRC20("XMarketCoin", "XMC", 18) {
-        mint(msg.sender, INITIAL_SUPPLY);
+        _mint(msg.sender, INITIAL_SUPPLY);
     }
 }
