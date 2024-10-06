@@ -18,13 +18,7 @@ contract RealEstateAsset is TRC721 {
 
     event AssetCreated(uint256 tokenId, string name, string location, uint256 value);
 
-    modifier onlyVerified(address from, address to) {
-        require(digitalIdentity.isVerified(from), "The owner must be verified.");
-        require(digitalIdentity.isVerified(to), "The recipient must be verified.");
-        _;
-    }
-
-    constructor(address digitalIdentity_) TRC721("RealEstateAsset", "REA") {
+    constructor(address digitalIdentity_) TRC721("RealEstateAsset", "REA", digitalIdentity_) {
         digitalIdentity = DigitalIdentity(digitalIdentity_);
     }
 
@@ -33,20 +27,20 @@ contract RealEstateAsset is TRC721 {
         
         uint256 tokenId = nextTokenId++;
         assets[tokenId] = Asset(name, location, value);
-        _mint(msg.sender, tokenId); // Esto debería funcionar ahora
+        _mint(msg.sender, tokenId);
         
         emit AssetCreated(tokenId, name, location, value);
     }
     
-    function transferFrom(address from, address to, uint256 tokenId) public override onlyVerified(from, to) {
+    function transferFrom(address from, address to, uint256 tokenId) public override {
         super.transferFrom(from, to, tokenId);
     }
 
-        function safeTransferFrom(address from, address to, uint256 tokenId) public override onlyVerified(from, to) {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public override {
         super.safeTransferFrom(from, to, tokenId);
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override onlyVerified(from, to) {
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override {
         super.safeTransferFrom(from, to, tokenId, data);
     }
 }

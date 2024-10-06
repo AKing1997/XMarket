@@ -1,9 +1,8 @@
 require('dotenv').config();
-const path = require("path");
 
 module.exports = {
   networks: {
-    contracts_build_directory: path.join(__dirname, "./client/src/contracts"),
+    contracts_build_directory: "./client/src/contracts",
     mainnet: {
       privateKey: process.env.PRIVATE_KEY_MAINNET,
       userFeePercentage: 100,

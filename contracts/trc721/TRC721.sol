@@ -8,20 +8,31 @@ import {Context} from "./../utils/Context.sol";
 import {Strings} from "./../utils/Strings.sol";
 import {ITRC165, TRC165} from "./../utils/introspection/TRC165.sol";
 import {ITRC721Errors} from "./interfaces/ITRC721Errors.sol";
-
+import {DigitalIdentity} from "./../DigitalIdentity.sol";
 abstract contract TRC721 is Context, TRC165, ITRC721, ITRC721Metadata, ITRC721Errors {
     using Strings for uint256;
+
+    DigitalIdentity public _digitalIdentity;
+
     string private _name;
     string private _symbol;
+    string public _baseURI;
 
     mapping(uint256 => address) private _owners;
     mapping(address => uint256) private _balances;
     mapping(uint256 => address) private _tokenApprovals;
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    constructor(string memory name_, string memory symbol_) {
+    modifier onlyVerified(address from, address to) {
+        require(_digitalIdentity.isVerified(from), "The owner must be verified.");
+        require(_digitalIdentity.isVerified(to), "The recipient must be verified.");
+        _;
+    }
+
+    constructor(string memory name_, string memory symbol_, address digitalIdentity_) {
         _name = name_;
         _symbol = symbol_;
+        _digitalIdentity = DigitalIdentity(digitalIdentity_);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(TRC165, ITRC165) returns (bool) {
@@ -53,16 +64,12 @@ abstract contract TRC721 is Context, TRC165, ITRC721, ITRC721Metadata, ITRC721Er
     function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
         _requireOwned(tokenId);
 
-        string memory baseURI = _baseURI();
+        string memory baseURI = _baseURI;
         return bytes(baseURI).length > 0 ? string.concat(baseURI, tokenId.toString()) : "";
     }
 
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
-    }
-
-    function approve(address to, uint256 tokenId) public virtual {
-        _approve(to, tokenId, _msgSender());
+    function approve(address to_, uint256 tokenId) public virtual onlyVerified( _msgSender(), to_) {
+        _approve(to_, tokenId, _msgSender());
     }
 
     function getApproved(uint256 tokenId) public view virtual returns (address) {
@@ -78,7 +85,7 @@ abstract contract TRC721 is Context, TRC165, ITRC721, ITRC721Metadata, ITRC721Er
         return _operatorApprovals[owner][operator];
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual onlyVerified(from, to) {
         if (to == address(0)) {
             revert TRC721InvalidReceiver(address(0));
         }
@@ -89,15 +96,16 @@ abstract contract TRC721 is Context, TRC165, ITRC721, ITRC721Metadata, ITRC721Er
         }
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual onlyVerified(from, to) {
         safeTransferFrom(from, to, tokenId, "");
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual onlyVerified(from, to) {
         transferFrom(from, to, tokenId);
         TRC721Utils.checkOnTRC721Received(_msgSender(), from, to, tokenId, data);
     }
 
+    // --- Internal functions ---
     function _ownerOf(uint256 tokenId) internal view virtual returns (address) {
         return _owners[tokenId];
     }
