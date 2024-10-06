@@ -1,0 +1,18 @@
+<div class="transfer-asset">
+  <h1>Transferir Activo Inmobiliario</h1>
+  <mat-form-field>
+    <mat-label>Desde la dirección</mat-label>
+    <input matInput [(ngModel)]="fromAddress" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Hacia la dirección</mat-label>
+    <input matInput [(ngModel)]="toAddress" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>ID del Token</mat-label>
+    <input matInput type="number" [(ngModel)]="tokenId" />
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="transferAsset()">
+    Transferir Activo
+  </button>
+</div>

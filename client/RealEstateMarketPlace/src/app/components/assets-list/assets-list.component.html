@@ -1,0 +1,10 @@
+<div class="assets-list">
+  <h1>Lista de Activos Inmobiliarios</h1>
+  <mat-card *ngFor="let asset of assets">
+    <mat-card-title>{{ asset.name }}</mat-card-title>
+    <mat-card-content>
+      <p>Ubicación: {{ asset.location }}</p>
+      <p>Valor: {{ asset.value }}</p>
+    </mat-card-content>
+  </mat-card>
+</div>

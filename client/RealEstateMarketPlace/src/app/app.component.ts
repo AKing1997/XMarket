@@ -9,5 +9,5 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.component.sass'
 })
 export class AppComponent {
-  title = 'RealEstateMarketPlace';
+  title = 'Real EstateMarket Place';
 }
