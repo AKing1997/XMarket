@@ -3,11 +3,13 @@ pragma solidity >=0.8.18 <0.8.28;
 
 import {ITRC20} from "./ITRC20.sol";
 import {ITRC20Metadata} from "./ITRC20Metadata.sol";
-import {Context} from "./../utils/Context.sol";
-import {Owner} from "./../utils/Owner.sol";
+import {Ownable} from "./../utils/Ownable.sol";
 import {ITRC20Errors} from "./ITRC20Errors.sol";
+import {DigitalIdentity} from "./../DigitalIdentity.sol";
 
-contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
+contract TRC20 is Ownable, ITRC20, ITRC20Metadata, ITRC20Errors {
+    DigitalIdentity private _digitalIdentity;
+
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
     uint256 private _totalSupply;
@@ -15,10 +17,17 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
     string private _symbol;
     uint8 private _decimals;
 
-    constructor(string memory name_, string memory symbol_, uint8 decimals_) {
+    modifier onlyVerified(address from, address to) {
+        require(_digitalIdentity.isVerified(from), "The owner must be verified.");
+        require(_digitalIdentity.isVerified(to), "The recipient must be verified.");
+        _;
+    }
+
+    constructor(string memory name_, string memory symbol_, uint8 decimals_, address digitalIdentity_) {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
+        _digitalIdentity = DigitalIdentity(digitalIdentity_);
     }
 
     // --- ITRC20Metadata implementation ---
@@ -43,29 +52,28 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         return _balances[account];
     }
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
+    function transfer(address recipient, uint256 amount) public override onlyVerified(_msgSender(), recipient) returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
 
-    function allowance(address owner_, address spender) public view override returns (uint256) {
+    function allowance(address owner_, address spender) public view override onlyVerified(owner_, spender) returns (uint256) {
         return _allowances[owner_][spender];
     }
 
-    function approve(address spender, uint256 amount) public override returns (bool) {
+    function approve(address spender, uint256 amount) public override  onlyVerified(_msgSender(), spender) returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
-        address spender = _msgSender();
-        _spendAllowance(from, spender, value);
+    function transferFrom(address from, address to, uint256 value) public override onlyVerified(from, to) returns (bool) {
+        _spendAllowance(from, _msgSender(), value);
         _transfer(from, to, value);
         return true;
     }
 
     // --- Internal functions ---
-    function _transfer(address from, address to, uint256 value) internal {
+    function _transfer(address from, address to, uint256 value) internal{
         if (from == address(0)) {
             revert TRC20InvalidSender(address(0));
         }
@@ -80,11 +88,11 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
     }
 
     function _approve(
-        address owner, 
-        address spender, 
-        uint256 value, 
+        address owner,
+        address spender,
+        uint256 value,
         bool emitEvent
-        ) internal virtual {
+    ) internal {
         if (owner == address(0)) {
             revert TRC20InvalidApprover(address(0));
         }
@@ -97,7 +105,7 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         }
     }
 
-    function _spendAllowance(address owner, address spender, uint256 value) internal virtual {
+    function _spendAllowance(address owner, address spender, uint256 value) internal {
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
             if (currentAllowance < value) {
@@ -109,9 +117,9 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         }
     }
 
-    function _update(address from, address to, uint256 value) internal virtual {
+    function _update(address from, address to, uint256 value) internal {
         if (from == address(0)) {
-            _totalSupply += value;
+            _totalSupply += value; // Minting new tokens
         } else {
             uint256 fromBalance = _balances[from];
             if (fromBalance < value) {
@@ -123,6 +131,7 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         }
 
         if (to == address(0)) {
+            // Burning tokens
             unchecked {
                 _totalSupply -= value;
             }
@@ -135,14 +144,14 @@ contract TRC20 is Context, Owner, ITRC20, ITRC20Metadata, ITRC20Errors {
         emit Transfer(from, to, value);
     }
 
-    function _mint(address account, uint256 value) isOwner() internal {
+    function _mint(address account, uint256 value) onlyOwner internal {
         if (account == address(0)) {
             revert TRC20InvalidReceiver(address(0));
         }
         _update(address(0), account, value);
     }
 
-    function _burn(address account, uint256 value) isOwner() internal {
+    function _burn(address account, uint256 value) onlyOwner internal {
         if (account == address(0)) {
             revert TRC20InvalidSender(address(0));
         }
