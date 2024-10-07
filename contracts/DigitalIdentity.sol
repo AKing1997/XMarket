@@ -12,10 +12,14 @@ contract DigitalIdentity is Ownable {
     mapping(address => Entity) public entities;
 
     event EntityVerified(address indexed entity, string identifier);
+    event EntityChanged(address indexed entity, string newIdentifier);
+    event EntityRemoved(address indexed entity);
 
     function requestVerification(string memory identifier) public {
-        require(!entities[msg.sender].isVerified, "Entity already verified.");
-        entities[msg.sender] = Entity(false, identifier);
+        require(!entities[_msgSender()].isVerified, "Entity already verified.");
+        require(bytes(identifier).length > 0, "Identifier cannot be empty.");
+
+        entities[_msgSender()] = Entity(false, identifier);
     }
 
     function verifyEntity(address entityAddress) public onlyOwner {
@@ -28,5 +32,25 @@ contract DigitalIdentity is Ownable {
 
     function isVerified(address entityAddress) public view returns (bool) {
         return entities[entityAddress].isVerified;
+    }
+
+    function getEntityIdentifier(address entityAddress) public view returns (string memory) {
+        require(entities[entityAddress].isVerified || bytes(entities[entityAddress].identifier).length > 0, "Entity does not exist.");
+        return entities[entityAddress].identifier;
+    }
+
+    function changeEntity(string memory newIdentifier) public {
+        require(bytes(newIdentifier).length > 0, "New identifier cannot be empty.");
+        require(bytes(entities[_msgSender()].identifier).length > 0, "Entity does not exist.");
+        
+        entities[_msgSender()].identifier = newIdentifier;
+        emit EntityChanged(_msgSender(), newIdentifier);
+    }
+
+    function removeEntity() public {
+        require(bytes(entities[_msgSender()].identifier).length > 0, "Entity does not exist.");
+
+        delete entities[_msgSender()];
+        emit EntityRemoved(_msgSender());
     }
 }

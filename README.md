@@ -6,19 +6,19 @@
 
 ### SHASTA TESTNET
 ***
-    Migrations:
-        (base58) TDoxmTzZZts9tuRQ9nTjxdNYAcPH368RHA
-        (hex) 412a20e09276fedc81a9be0864d359a0b6d6a8cf5f
-    DigitalIdentity:
-        (base58) TARU1xhmYe6YaEtEL6ePieQN1RHir64G4y
-        (hex) 4104f7596fb7b9f22caacfd0dcd71b6d3cd3d967f3
-    RealEstateToken:
-        (base58) THVysASgtBi78LEiFKefCZrWyD9eF1fyeH
-        (hex) 41529acf500c5c2737def23769bf8b6ffc733c2ca1
-    RealEstateAsset:
-        (base58) TXDqbGMwwfvb5iwhrXvGjQwpaCcRGXnXNw
-        (hex) 41e91f022ec7403355a689aecbb226ab9908644429
-    Market:
-        (base58) TYyptmmn7fP8FkAmPT9QzLTjFTf3pxrbaq
-        (hex) 41fc68da95382545abe4f17514ceb418c17fd5b188
+  Migrations:
+    (base58) TJuBtVeU9thto3ZVyupGhV3C47nm1w7Rck
+    (hex) 4161f689fa25977daccf5b7bc9ad64f4786015d65a
+  DigitalIdentity:
+    (base58) TKoDczHMmKCeRdyyzGLqtJ5b7mahKjDQzG
+    (hex) 416bcd9d8643c82576f2cc211337ee14bf0e200357
+  RealEstateToken:
+    (base58) TRqFgLYhCqErXtmHbmAaZkiwME1f4LDT94
+    (hex) 41ae00eb70009a41950ee9baa6bbe505b04f04ed7c
+  RealEstateAsset:
+    (base58) TKHVB9d727nWEX3u9SnnFYCagy1MAvePwb
+    (hex) 41662e1ee77b0c27c01d6722149ae73d17830ffc13
+  Market:
+    (base58) TBSakQYUEDcDnyso9cVSgt9TeBsfdbo4vv
+    (hex) 41102582b326e4d62020cb0972f30bbb320e7e491e
 ***
