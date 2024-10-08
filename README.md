@@ -124,3 +124,4 @@ To interact with the contracts on the **Nile Testnet**, you can use TronLink or 
 ## Get Free TRX for Shasta Testnet
 
 To get free TRX for testing on the **Shasta Testnet**, visit [Shasta Tronex](https://shasta.tronex.io/)
+To get free TRX for testing on the **Nile Testnet**, visit [Nile Tronex](https://nileex.io/join/getJoinPage)
