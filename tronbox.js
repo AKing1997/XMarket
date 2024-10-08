@@ -17,6 +17,13 @@ module.exports = {
       fullHost: 'https://api.shasta.trongrid.io',
       network_id: '2',
     },
+    nile: {
+      privateKey: process.env.PRIVATE_KEY_NILE,
+      userFeePercentage: 100,
+      feeLimit: 1000 * 1e6,
+      fullHost: 'https://api.nileex.io',
+      network_id: '3'
+    }
   },
   compilers: {
     solc: {

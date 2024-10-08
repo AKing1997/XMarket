@@ -23,7 +23,7 @@ contract TRC20 is Ownable, ITRC20, ITRC20Metadata, ITRC20Errors {
         _;
     }
 
-    constructor(string memory name_, string memory symbol_, uint8 decimals_, address digitalIdentity_) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_, address digitalIdentity_) Ownable(msg.sender)  {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;

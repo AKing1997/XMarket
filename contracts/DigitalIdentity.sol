@@ -14,6 +14,8 @@ contract DigitalIdentity is Ownable {
     event EntityVerified(address indexed entity, string identifier);
     event EntityChanged(address indexed entity, string newIdentifier);
     event EntityRemoved(address indexed entity);
+    
+    constructor() Ownable(msg.sender) {}
 
     function requestVerification(string memory identifier) public {
         require(!entities[_msgSender()].isVerified, "Entity already verified.");

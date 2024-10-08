@@ -1,36 +1,54 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.18 <0.8.28;
+// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)
+
+pragma solidity ^0.8.20;
 
 import {Context} from "./Context.sol";
 
 abstract contract Ownable is Context {
     address private _owner;
 
+    error OwnableUnauthorizedAccount(address account);
+
+    error OwnableInvalidOwner(address owner);
+
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    constructor() {
-        _owner = _msgSender();
-    }
-
-    function owner() public view returns (address) {
-        return _owner;
+    constructor(address initialOwner) {
+        if (initialOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
+        _transferOwnership(initialOwner);
     }
 
     modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _checkOwner();
         _;
     }
 
-    function renounceOwnership() public onlyOwner {
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    function _checkOwner() internal view virtual {
+        if (owner() != _msgSender()) {
+            revert OwnableUnauthorizedAccount(_msgSender());
+        }
+    }
+
+    function renounceOwnership() public virtual onlyOwner {
         _transferOwnership(address(0));
     }
 
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        if (newOwner == address(0)) {
+            revert OwnableInvalidOwner(address(0));
+        }
         _transferOwnership(newOwner);
     }
-
-    function _transferOwnership(address newOwner) private {
+    
+    function _transferOwnership(address newOwner) internal virtual {
         address oldOwner = _owner;
         _owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
